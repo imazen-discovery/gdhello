@@ -11,6 +11,9 @@ class Hello
 {
     static int Main(string[] args)
     {
+
+        Console.WriteLine("GD Version: {0}", Image.versionString);
+
         if (args.Length != 1)
         {
             Console.WriteLine("Usage: loadimg.exe <filename>");
