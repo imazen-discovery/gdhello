@@ -29,7 +29,7 @@ class Hello
         ImageData id = new ImageData(r, Enc.JPEG);
         if (id == null)
         {
-            Console.WriteLine("Error eading image data.");
+            Console.WriteLine("Error reading image data.");
             return 1;
         }/* if */
 
