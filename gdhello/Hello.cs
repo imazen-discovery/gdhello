@@ -5,7 +5,8 @@
 using System;
 using System.IO;
 
-using GD;
+using LibGD;
+using System.Diagnostics;
 
 class Hello
 {
@@ -17,23 +18,55 @@ class Hello
             return 1;
         }/* if */
 
-        // Create the filestream and reader.  (DotNet: TWO file objects
-        // for the price of ONE!)
-        var fs = new FileStream(args[0], FileMode.Open);
-        var r = new BinaryReader(fs);
 
-        // Suck the data into an ImageData.
-        ImageData id = new ImageData(r, Enc.JPEG);
-        if (id == null)
+        gdImageStruct im;
+
+
+        var fp = C.fopen(args[0], "rb");
+
+        if (fp == IntPtr.Zero)
         {
-            Console.WriteLine("Error eading image data.");
+            Console.WriteLine("Failed to open file");
             return 1;
-        }/* if */
+        }
 
-        // And decode the file data into an Image object.
-        Image img = id.decode();
-        Console.WriteLine("Image {0}: {1}x{2}", args[0], img.sx, img.sy);
+        im = gd.gdImageCreateFromJpeg(new _iobuf(fp));
 
+        C.fclose(fp);
+
+        if (im == null)
+        {
+            Console.WriteLine("Failed to decode file");
+            return 1;
+        }
+
+        Stopwatch sw = new Stopwatch();
+
+        sw.Start();
+        gd.gdImageSetInterpolationMethod(im, gdInterpolationMethod.GD_BICUBIC);
+
+        var newim = gd.gdImageScale(im, 500, 300);
+        sw.Stop();
+
+
+        
+        var fpOut = C.fopen(args[0] + ".small.jpg", "wb");
+
+        if (fpOut == IntPtr.Zero)
+        {
+            Console.WriteLine("Failed to open output file");
+            return 1;
+        }
+        gd.gdImageJpeg(newim, new _iobuf(fpOut), 100);
+        C.fclose(fpOut);
+        Console.WriteLine("Resized image from {0}x{1} to {2}x{3} in {4}ms", im.sx, im.sy, newim.sx, newim.sy, sw.ElapsedMilliseconds);
+
+        gd.gdImageDestroy(im);
+        gd.gdImageDestroy(newim);
+
+
+ 
+        Console.ReadKey();
         return 0;
     }
 }
